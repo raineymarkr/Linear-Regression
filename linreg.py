@@ -1,53 +1,62 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
+import os
 
 x = []
 y = []
 
-def importFile(file):
-    df = pd.read_csv(r'C:\Users\raine\Downloads\bottle.csv')
-    depth_df = df[df['Depthm'] <= 10]
-
-    temp_df = depth_df['T_degC']
-    salinity_df = depth_df['Salnty']
-
-    combined_df = depth_df[['T_degC', 'Salnty']].dropna()
-
-    x = []
-    y = []
-
-    x.extend(combined_df['T_degC'].tolist())
-    y.extend(combined_df['Salnty'].tolist())
-
-
 def getValues(x,y):
+    if os.path.exists(r'.\novfitness.csv'):
+        df = pd.read_csv(r'.\novfitness.csv')
+        xLabel = 'Date'
+        yLabel = 'Volume'
+        
+        dead_df = df[df['Exercise'] == 'Deadlift']
+        date_df = dead_df['Date']
+        weight_df = dead_df['Weight']
+        reps_df = dead_df['Reps']
+        volume_df = weight_df * reps_df
+        last_date = ''
+        daily_vol = 0
+        daily_df = []
+        for i in range(len(dead_df)):
+            if last_date != '':
+                if dead_df.get(i) == last_date:
+                    daily_vol += volume_df.get(i)
+                else:
+                    daily_df.append(daily_vol)
+                    last_date = date_df.get(i)
+                    daily_vol = volume_df.get(i)
+            else:
+                last_date = date_df.get(i)
+                daily_vol = volume_df.get(i)
 
     running = False
 
     if(len(x) == 0):
         running = True
-    print('Input X Label:')
-    xLabel = input()
-    print('Input X Values. Enter blank value to end.')
-    while(running):
-        new_x = input()
-        if new_x != '':
-            x.append(float(new_x))
-        else:
-            running = False
+        print('Input X Label:')
+        xLabel = input()
+        print('Input X Values. Enter blank value to end.')
+        while(running):
+            new_x = input()
+            if new_x != '':
+                x.append(float(new_x))
+            else:
+                running = False
 
-    if(len(y) == 0):
-        running = True
-    print('Input Y Label:')
-    yLabel = input()
-    print('Input Y Values. Enter blank value to end.')
-    while(running):
-        new_y = input()
-        if new_y != '':
-            y.append(float(new_y))
-        else:
-            running = False
+        if(len(y) == 0):
+            running = True
+        print('Input Y Label:')
+        yLabel = input()
+        print('Input Y Values. Enter blank value to end.')
+        while(running):
+            new_y = input()
+            if new_y != '':
+                y.append(float(new_y))
+            else:
+                running = False
 
     x = np.array(x)
     y = np.array(y)
@@ -94,6 +103,8 @@ def generateValues(x,y):
 
     SSR = (SSRf1 - SSRf2) / Sxx
 
+    #R²
+    Rsq = (1 - SSR/SYY)
     #Linear Regression
 
     B = SxY / Sxx
@@ -106,10 +117,11 @@ def generateValues(x,y):
     print('Sxx: ', Sxx)
     print('SYY: ', SYY)
     print('SSR: ', SSR)
+    print('R²: ', Rsq)
 
     print('A: ', A)
     print('B: ', B)
-    return SxY, Sxx, SYY, SSR, A, B
+    return SxY, Sxx, SYY, SSR, Rsq, A, B
 
 def generatePlot(A,B,x,y,xLabel,yLabel):
     yReg = A + B * x
@@ -136,13 +148,13 @@ def menu(x,y):
 
             choice2 = input()
             if choice2 == '1':
-                SxY, Sxx, SYY, SSR, A,  B = generateValues(x,y)
+                SxY, Sxx, SYY, SSR, Rsq, A,  B = generateValues(x,y)
                 print("Beta: ")
                 Beta = float(input())
                 BTestStat = np.sqrt(((len(y)-2)*Sxx)/SSR)*(B- Beta)
                 print('T: ', BTestStat)
             elif choice2 == '2':
-                SxY, Sxx, SYY, SSR, A, B = generateValues(x,y)
+                SxY, Sxx, SYY, SSR, Rsq, A, B = generateValues(x,y)
                 print("Alpha: ")
                 Alpha = float(input())
                 SumXSq = 0
@@ -156,8 +168,8 @@ def menu(x,y):
             elif choice2 == '4':
                 print('')
         elif choice == '2':
-            SxY, Sxx, SYY, SSR, A, B = generateValues(x,y)
-            generatePlot(A,B,x,y,xLabel,yLabel)
+            SxY, Sxx, SYY, SSR, Rsq, A, B = generateValues(x,y)
+            generatePlot(A,B,x,y,'Temp Deg C','Salinity')
         elif choice == '0':
             x,y,xLabel,yLabel = getValues([],[])
             generateValues(x,y)
