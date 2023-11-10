@@ -4,9 +4,10 @@ import pandas as pd
 from scipy.stats import t
 import os
 
-x = []
-y = []
-
+#x = [60,62,64,65,66,67,68,70,72,74]
+#y = [63.6,65.2,66,65.5,66.9,67.1,67.4,68.3,70.1,70]
+x=[]
+y=[]
 def getValues(x,y):
     if os.path.exists(r'.\novfitness.csv'):
         df = pd.read_csv(r'.\novfitness.csv')
@@ -137,6 +138,8 @@ firstMenu = True
 def menu(x,y, firstMenu):
     
     while True:
+        n = len(x)
+        t_score = t.ppf(0.975, df=(n-2))
         if firstMenu:
             SxY, Sxx, SYY, SSR, Rsq, A,  B = generateValues(x,y,True)
             firstMenu = False
@@ -158,9 +161,10 @@ def menu(x,y, firstMenu):
             if choice2 == '1':
                 print("Beta: ")
                 Beta = float(input())
-                BTestStat = np.sqrt(((len(y)-2)*Sxx)/SSR)*(B- Beta)
+                BTestStat = np.sqrt(((n-2)*Sxx)/SSR)*(B- Beta)
                 
-                t_score = t.ppf(0.95, df=(len(x)-2))
+                
+                print(t_score)
                 if BTestStat < t_score:
                     print(f'{BTestStat} < {t_score}' )
                     print(f'Rejected @ 95%')
@@ -171,25 +175,38 @@ def menu(x,y, firstMenu):
                 print("Alpha: ")
                 Alpha = float(input())
                 SumXSq = 0
-                for i in range(len(x)):
+                for i in range(n):
                     temp = x[i] * x[i]
                     SumXSq += temp
-                ATestStat = np.sqrt((len(x)*(len(x)-2)*Sxx)/(SSR*SumXSq))*(A - Alpha)
+                ATestStat = np.sqrt((n*(n-2)*Sxx)/(SSR*SumXSq))*(A - Alpha)
                 print('T: ', ATestStat)
             elif choice2 == '3':   
                 print('X₀: ')
                 xnaught = float(input())
                 xmean = np.mean(x)
                 xfactor = xnaught - xmean
-                factor1 = np.sqrt((1/len(x)) + (xfactor*xfactor)/Sxx) * np.sqrt(SSR/(len(x)-2))
-                t_score = t.ppf(0.95, df=(len(x)-2))
+                factor1 = np.sqrt((1/n) + (xfactor*xfactor)/Sxx) * np.sqrt(SSR/(n-2))
+                t_score = t.ppf(0.975, df=(n-2))
                 result_base = A + B*xnaught
                 difference = t_score * factor1
                 lower = result_base - difference
                 upper = result_base + difference
+                print(f'α+βx ∈ {result_base} +- {difference}')
                 print(f'α+βx ∈ ( {lower}, {upper})')
             elif choice2 == '4':
-                print('')
+                print('X₀: ')
+                xnaught = float(input())
+                xmean = np.mean(x)
+                xfactor = xnaught - xmean
+                factor1 = np.sqrt((((n+1)/n) + (xfactor*xfactor)/Sxx) * SSR/(n-2))
+                t_score = t.ppf(0.975, df=(n-2))
+                print(t_score, factor1)
+                result_base = A + B*xnaught
+                difference = t_score * factor1
+                lower = result_base - difference
+                upper = result_base + difference
+                print(f'Y(X₀) ∈ {result_base} +- {difference}')
+                print(f'Y(X₀) ∈ ( {lower}, {upper})')
         elif choice == '2':
             SxY, Sxx, SYY, SSR, Rsq, A, B = generateValues(x,y, True)
             generatePlot(A,B,x,y)
