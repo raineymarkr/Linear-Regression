@@ -4,10 +4,10 @@ import pandas as pd
 from scipy.stats import t
 import os
 
-#x = [60,62,64,65,66,67,68,70,72,74]
-#y = [63.6,65.2,66,65.5,66.9,67.1,67.4,68.3,70.1,70]
-x=[]
-y=[]
+x = [60,62,64,65,66,67,68,70,72,74]
+y = [63.6,65.2,66,65.5,66.9,67.1,67.4,68.3,70.1,70]
+#x=[]
+#y=[]
 def getValues(x,y):
     if os.path.exists(r'.\novfitness.csv'):
         df = pd.read_csv(r'.\novfitness.csv')
@@ -147,6 +147,7 @@ def menu(x,y, firstMenu):
             SxY, Sxx, SYY, SSR, Rsq, A,  B = generateValues(x,y,False)    
         print('1: Run Tests')
         print('2: Show Plot')
+        print('3: Residuals')
         print('0: Reinput Values')
         choice = input('?')
         if (choice == '1'):
@@ -210,6 +211,19 @@ def menu(x,y, firstMenu):
         elif choice == '2':
             SxY, Sxx, SYY, SSR, Rsq, A, B = generateValues(x,y, True)
             generatePlot(A,B,x,y)
+        elif choice == '3':
+            res_y = []
+            res_x = []
+            n = len(y)
+            for i in range(len(y)):
+                num = y[i] - (A + B * x[i])
+                den = np.sqrt(SSR/(n-2))
+                res_y.append(num/den)
+                res_x.append(i)
+            res_x = np.array(res_x)
+            res_y = np.array(res_y)
+            SxY, Sxx, SYY, SSR, Rsq, A,  B  = generateValues(res_x, res_y, False)
+            generatePlot(A,B,res_x,res_y)
         elif choice == '0':
             x,y = getValues([],[])
             generateValues(x,y, True)
