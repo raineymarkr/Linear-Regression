@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
+from scipy.stats import t
 import os
 
 x = []
@@ -9,8 +10,6 @@ y = []
 def getValues(x,y):
     if os.path.exists(r'.\novfitness.csv'):
         df = pd.read_csv(r'.\novfitness.csv')
-        xLabel = 'Date'
-        yLabel = 'Volume'
         
         dead_df = df[df['Exercise'] == 'Deadlift']
         date_df = dead_df['Date']
@@ -33,11 +32,10 @@ def getValues(x,y):
                 daily_vol = volume_df.get(i)
 
     running = False
-
+    global Flag
+    Flag = False
     if(len(x) == 0):
         running = True
-        print('Input X Label:')
-        xLabel = input()
         print('Input X Values. Enter blank value to end.')
         while(running):
             new_x = input()
@@ -48,8 +46,6 @@ def getValues(x,y):
 
         if(len(y) == 0):
             running = True
-        print('Input Y Label:')
-        yLabel = input()
         print('Input Y Values. Enter blank value to end.')
         while(running):
             new_y = input()
@@ -57,16 +53,21 @@ def getValues(x,y):
                 y.append(float(new_y))
             else:
                 running = False
+    if len(x) == len(y):
+        x = np.array(x)
+        y = np.array(y)
+        Flag = False
+        return x,y
+    else:
+        Flag == True
+        return x,y
+    
+    
 
-    x = np.array(x)
-    y = np.array(y)
-
-    return x,y, xLabel, yLabel
-
-x,y,xLabel,yLabel = getValues(x,y)
+x,y = getValues(x,y)
 
 # Graph
-def generateValues(x,y):
+def generateValues(x,y, pFlag):
     meanX = np.mean(x)
     meanY = np.mean(y)
 
@@ -112,23 +113,23 @@ def generateValues(x,y):
     A = meanY - B * meanX
 
     
+    if pFlag == True:
+        print('SxY: ', SxY)
+        print('Sxx: ', Sxx)
+        print('SYY: ', SYY)
+        print('SSR: ', SSR)
+        print('R²: ', Rsq)
 
-    print('SxY: ', SxY)
-    print('Sxx: ', Sxx)
-    print('SYY: ', SYY)
-    print('SSR: ', SSR)
-    print('R²: ', Rsq)
-
-    print('A: ', A)
-    print('B: ', B)
+        print('A: ', A)
+        print('B: ', B)
     return SxY, Sxx, SYY, SSR, Rsq, A, B
 
-def generatePlot(A,B,x,y,xLabel,yLabel):
+def generatePlot(A,B,x,y):
     yReg = A + B * x
     plt.scatter(x,y)
     plt.plot(x, yReg, color='red')
-    plt.xlabel(xLabel)
-    plt.ylabel(yLabel)
+    plt.xlabel('X')
+    plt.ylabel('Y')
     plt.show()
 
 
@@ -142,19 +143,26 @@ def menu(x,y):
             print('Which Test?')
             print('1: Test β')
             print('2: Test α')
-            print('3: α+βx')
+            print('3: α+βx Confidence Interval (95%)')
             print('4: Y(x)')
             print('0: Go back')
 
             choice2 = input()
             if choice2 == '1':
-                SxY, Sxx, SYY, SSR, Rsq, A,  B = generateValues(x,y)
+                SxY, Sxx, SYY, SSR, Rsq, A,  B = generateValues(x,y,False)
                 print("Beta: ")
                 Beta = float(input())
                 BTestStat = np.sqrt(((len(y)-2)*Sxx)/SSR)*(B- Beta)
-                print('T: ', BTestStat)
+                
+                t_score = t.ppf(0.95, df=(len(x)-2))
+                if BTestStat < t_score:
+                    print(f'{BTestStat} < {t_score}' )
+                    print(f'Rejected @ 95%')
+                else:
+                    print(f'{BTestStat} > {t_score}' )
+                    print('Not enough data to reject @ 95%')
             elif choice2 == '2':
-                SxY, Sxx, SYY, SSR, Rsq, A, B = generateValues(x,y)
+                SxY, Sxx, SYY, SSR, Rsq, A, B = generateValues(x,y, False)
                 print("Alpha: ")
                 Alpha = float(input())
                 SumXSq = 0
@@ -163,15 +171,31 @@ def menu(x,y):
                     SumXSq += temp
                 ATestStat = np.sqrt((len(x)*(len(x)-2)*Sxx)/(SSR*SumXSq))*(A - Alpha)
                 print('T: ', ATestStat)
-            elif choice2 == '3':
-                print('')
+            elif choice2 == '3':   
+                print('X₀: ')
+                SxY, Sxx, SYY, SSR, Rsq, A, B = generateValues(x,y, False)
+                xnaught = float(input())
+                xmean = np.mean(x)
+                xfactor = xnaught - xmean
+                factor1 = np.sqrt((1/len(x)) + (xfactor*xfactor)/Sxx) * np.sqrt(SSR/(len(x)-2))
+                t_score = t.ppf(0.95, df=(len(x)-2))
+                result_base = A + B*xnaught
+                difference = t_score * factor1
+                lower = result_base - difference
+                upper = result_base + difference
+                print(f'α+βx ∈ ( {lower}, {upper})')
             elif choice2 == '4':
                 print('')
         elif choice == '2':
-            SxY, Sxx, SYY, SSR, Rsq, A, B = generateValues(x,y)
-            generatePlot(A,B,x,y,'Temp Deg C','Salinity')
+            SxY, Sxx, SYY, SSR, Rsq, A, B = generateValues(x,y, True)
+            generatePlot(A,B,x,y)
         elif choice == '0':
-            x,y,xLabel,yLabel = getValues([],[])
-            generateValues(x,y)
+            x,y = getValues([],[])
+            generateValues(x,y, True)
 if __name__ == "__main__":
     menu(x,y)
+    
+    while Flag == True:
+        print("The lengths of x and y are not equal. Please reinput values.")
+        x,y = getValues(x,y)
+
