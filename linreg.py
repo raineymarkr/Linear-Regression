@@ -132,9 +132,16 @@ def generatePlot(A,B,x,y):
     plt.ylabel('Y')
     plt.show()
 
-
-def menu(x,y):
-    while True:    
+global firstMenu
+firstMenu = True
+def menu(x,y, firstMenu):
+    
+    while True:
+        if firstMenu:
+            SxY, Sxx, SYY, SSR, Rsq, A,  B = generateValues(x,y,True)
+            firstMenu = False
+        else:
+            SxY, Sxx, SYY, SSR, Rsq, A,  B = generateValues(x,y,False)    
         print('1: Run Tests')
         print('2: Show Plot')
         print('0: Reinput Values')
@@ -149,7 +156,6 @@ def menu(x,y):
 
             choice2 = input()
             if choice2 == '1':
-                SxY, Sxx, SYY, SSR, Rsq, A,  B = generateValues(x,y,False)
                 print("Beta: ")
                 Beta = float(input())
                 BTestStat = np.sqrt(((len(y)-2)*Sxx)/SSR)*(B- Beta)
@@ -162,7 +168,6 @@ def menu(x,y):
                     print(f'{BTestStat} > {t_score}' )
                     print('Not enough data to reject @ 95%')
             elif choice2 == '2':
-                SxY, Sxx, SYY, SSR, Rsq, A, B = generateValues(x,y, False)
                 print("Alpha: ")
                 Alpha = float(input())
                 SumXSq = 0
@@ -173,7 +178,6 @@ def menu(x,y):
                 print('T: ', ATestStat)
             elif choice2 == '3':   
                 print('X₀: ')
-                SxY, Sxx, SYY, SSR, Rsq, A, B = generateValues(x,y, False)
                 xnaught = float(input())
                 xmean = np.mean(x)
                 xfactor = xnaught - xmean
@@ -193,7 +197,7 @@ def menu(x,y):
             x,y = getValues([],[])
             generateValues(x,y, True)
 if __name__ == "__main__":
-    menu(x,y)
+    menu(x,y, firstMenu)
     
     while Flag == True:
         print("The lengths of x and y are not equal. Please reinput values.")
