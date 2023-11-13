@@ -68,7 +68,7 @@ def getValues(x,y):
 x,y = getValues(x,y)
 
 # Graph
-def generateValues(x,y, pFlag):
+def generateSSValues(x,y, pFlag):
     meanX = np.mean(x)
     meanY = np.mean(y)
 
@@ -125,12 +125,13 @@ def generateValues(x,y, pFlag):
         print('B: ', B)
     return SxY, Sxx, SYY, SSR, Rsq, A, B
 
-def generatePlot(A,B,x,y):
+def generatePlot(A,B,x,y,Title):
     yReg = A + B * x
     plt.scatter(x,y)
     plt.plot(x, yReg, color='red')
     plt.xlabel('X')
     plt.ylabel('Y')
+    plt.title(Title)
     plt.show()
 
 global firstMenu
@@ -141,10 +142,10 @@ def menu(x,y, firstMenu):
         n = len(x)
         t_score = t.ppf(0.975, df=(n-2))
         if firstMenu:
-            SxY, Sxx, SYY, SSR, Rsq, A,  B = generateValues(x,y,True)
+            SxY, Sxx, SYY, SSR, Rsq, A,  B = generateSSValues(x,y,True)
             firstMenu = False
         else:
-            SxY, Sxx, SYY, SSR, Rsq, A,  B = generateValues(x,y,False)    
+            SxY, Sxx, SYY, SSR, Rsq, A,  B = generateSSValues(x,y,False)    
         print('1: Run Tests')
         print('2: Show Plot')
         print('3: Residuals')
@@ -209,8 +210,8 @@ def menu(x,y, firstMenu):
                 print(f'Y(X₀) ∈ {result_base} +- {difference}')
                 print(f'Y(X₀) ∈ ( {lower}, {upper})')
         elif choice == '2':
-            SxY, Sxx, SYY, SSR, Rsq, A, B = generateValues(x,y, True)
-            generatePlot(A,B,x,y)
+            SxY, Sxx, SYY, SSR, Rsq, A, B = generateSSValues(x,y, True)
+            generatePlot(A,B,x,y,'Data')
         elif choice == '3':
             res_y = []
             res_x = []
@@ -222,11 +223,11 @@ def menu(x,y, firstMenu):
                 res_x.append(i)
             res_x = np.array(res_x)
             res_y = np.array(res_y)
-            SxY, Sxx, SYY, SSR, Rsq, A,  B  = generateValues(res_x, res_y, False)
-            generatePlot(A,B,res_x,res_y)
+            SxY, Sxx, SYY, SSR, Rsq, A,  B  = generateSSValues(res_x, res_y, False)
+            generatePlot(A,B,res_x,res_y,'Residuals')
         elif choice == '0':
             x,y = getValues([],[])
-            generateValues(x,y, True)
+            generateSSValues(x,y, True)
 if __name__ == "__main__":
     menu(x,y, firstMenu)
     
