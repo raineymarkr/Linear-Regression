@@ -4,29 +4,21 @@ import pandas as pd
 import scipy.stats as stats
 from tabulate import tabulate
 
-def getValues(A,b):
+def getValues(A):
     print("n: ")
     n = int(input())
-    print('k:')
+    print('m:')
     k = int(input())
     print('Input Matrix Values.')
     for i in range(n):
         temp = []
-        for x in range(k+1):
-            if x == 0:
-                temp.append(1)
-            else:
-                new_x = float(input())
-                temp.append(new_x)
+        for x in range(k):
+            new_x = float(input())
+            temp.append(new_x)
         A.append(temp)
         print('Next Row...')
-    print('Input Y Values.')
-    for i in range(n):
-        temp_y = float(input())
-        b.append(temp_y)
     A = np.array(A)
-    b = np.array(b)
-    return A, b
+    return A
 
 def generateSSValues(A, b, pFlag):
     # SS Code
@@ -61,14 +53,33 @@ def generateSSValues(A, b, pFlag):
         
     return SSW, WithinSample, SSB, BetweenSample
 
-def generatePlot(B,x,y,Title):
-    yReg = B @ x.T
-    #plt.scatter(x,y)
-    plt.plot(x, yReg, color='red')
-    plt.xlabel('X')
-    plt.ylabel('Y')
-    plt.title(Title)
-    plt.show()
+def comparisons(A,SSW):
+    x1dot = np.mean(A[:],0)
+    x2dot = np.mean(A[:],1)
+    x3dot = np.mean(A[:],2)
+    
+    m = A.shape[1]
+    n = A.shape[0]
+    
+    factor1 = n * m - m
+    
+    print(f'n * m - m = {factor1}')
+    print('C:')
+    C = input()
+    W = np.sqrt(1 / n) * C * np.sqrt(SSW / (n * m - m))
+    
+    diffonetwopos = x1dot - x2dot + W
+    diffonetwoneg = x1dot - x2dot - W
+    
+    diffonethreepos = x1dot - x3dot + W
+    diffonethreeneg = x1dot - x3dot - W
+    
+    difftwothreepos = x2dot - x3dot + W
+    difftwothreeneg = x2dot - x3dot - W
+    
+    table = [["μ1 - μ2:", diffonetwoneg + "< μ < " + diffonetwopos], ["μ1 - μ2:", diffonethreeneg + "< μ < " + diffonethreepos],["μ1 - μ2:", difftwothreeneg + "< μ < " + difftwothreepos]]
+    headers = ["Statistic", "Value"]
+    print(tabulate(table, headers, tablefmt="grid"))
 
 def generateTable(SSW, WithinSample, SSB, BetweenSample):
     table = [["Within Sample Sum of Squares:", WithinSample], ["Between Sample Sum of Squares:", BetweenSample],['F-stat:', BetweenSample/WithinSample]]
@@ -77,10 +88,10 @@ def generateTable(SSW, WithinSample, SSB, BetweenSample):
     print()
 
 if __name__ == "__main__":
-    X = [[220,251,226,246,260],[244,235,232,242,225],[252,272,250,238,256]]
+    X = []
     y = []
     
-    #X,y = getValues(X,y)
+    X = getValues(X)
     np.set_printoptions(precision=2)
     #menu(x,y, firstMenu)
     
