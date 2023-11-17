@@ -4,23 +4,10 @@ import pandas as pd
 import scipy.stats as stats
 from tabulate import tabulate
 
-def getValues(A):
-    print("n: ")
-    n = int(input())
-    print('m:')
-    k = int(input())
-    print('Input Matrix Values.')
-    for i in range(n):
-        temp = []
-        for x in range(k):
-            new_x = float(input())
-            temp.append(new_x)
-        A.append(temp)
-        print('Next Row...')
-    A = np.array(A)
-    return A
+X = np.array([[3.2, 3.4, 3.3, 3.5], [3.4, 3, 3.7, 3.3], [2.8, 2.6, 3, 2.7]]).T
 
-def generateSSValues(A, b, pFlag):
+
+def generateSSValues(A):
     # SS Code
     sum = 0
     runsum = 0
@@ -54,10 +41,10 @@ def generateSSValues(A, b, pFlag):
     return SSW, WithinSample, SSB, BetweenSample
 
 def comparisons(A,SSW):
-    x1dot = np.mean(A[:],0)
-    x2dot = np.mean(A[:],1)
-    x3dot = np.mean(A[:],2)
-    
+    x1dot = np.mean(A[:,0])
+    x2dot = np.mean(A[:,1])
+    x3dot = np.mean(A[:,2])
+    print(x1dot, x2dot, x3dot)
     m = A.shape[1]
     n = A.shape[0]
     
@@ -66,7 +53,7 @@ def comparisons(A,SSW):
     print(f'n * m - m = {factor1}')
     print('C:')
     C = input()
-    W = np.sqrt(1 / n) * C * np.sqrt(SSW / (n * m - m))
+    W = np.sqrt(1 / n) * float(C) * np.sqrt(SSW / (n * m - m))
     
     diffonetwopos = x1dot - x2dot + W
     diffonetwoneg = x1dot - x2dot - W
@@ -77,7 +64,7 @@ def comparisons(A,SSW):
     difftwothreepos = x2dot - x3dot + W
     difftwothreeneg = x2dot - x3dot - W
     
-    table = [["μ1 - μ2:", diffonetwoneg + "< μ < " + diffonetwopos], ["μ1 - μ2:", diffonethreeneg + "< μ < " + diffonethreepos],["μ1 - μ2:", difftwothreeneg + "< μ < " + difftwothreepos]]
+    table = [[f"μ1 - μ2: {diffonetwoneg:.3f} < μ <  {diffonetwopos:.3f}"], [f"μ1 - μ2: {diffonethreeneg:.3f} < μ <  {diffonethreepos:.3f}"],[f"μ1 - μ2: {difftwothreeneg:.3f}  < μ <  {difftwothreepos:.3f}"]]
     headers = ["Statistic", "Value"]
     print(tabulate(table, headers, tablefmt="grid"))
 
@@ -88,15 +75,14 @@ def generateTable(SSW, WithinSample, SSB, BetweenSample):
     print()
 
 if __name__ == "__main__":
-    X = []
-    y = []
-    
-    X = getValues(X)
+ 
     np.set_printoptions(precision=2)
     #menu(x,y, firstMenu)
     
 
-    X = np.array(X).T
+    X = np.array(X)
     
-    SSW, WithinSample, SSB, BetweenSample = generateSSValues(X,y,True)
+    SSW, WithinSample, SSB, BetweenSample = generateSSValues(X)
+    
     generateTable(SSW, WithinSample, SSB, BetweenSample)
+    comparisons(X, SSW)
