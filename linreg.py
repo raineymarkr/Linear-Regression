@@ -4,71 +4,29 @@ import pandas as pd
 from scipy.stats import t
 import os
 
-x = [
-        165, 167, 180, 155, 212, 175, 190, 200, 210, 149,
-        172, 159, 168, 174, 183, 215, 195, 180, 143, 240
-    ]
+x =  np.array([[2, 21],
+               [3, 42],
+               [8, 102],
+               [11, 130],
+               [4, 52],
+               [5, 57],
+               [9, 105],
+               [7, 85],
+               [5, 62],
+               [7, 90]])
 
-#x=[]
-#y=[]
-def getValues(x,y):
-    if os.path.exists(r'.\novfitness.csv'):
-        df = pd.read_csv(r'.\novfitness.csv')
-        
-        dead_df = df[df['Exercise'] == 'Deadlift']
-        date_df = dead_df['Date']
-        weight_df = dead_df['Weight']
-        reps_df = dead_df['Reps']
-        volume_df = weight_df * reps_df
-        last_date = ''
-        daily_vol = 0
-        daily_df = []
-        for i in range(len(dead_df)):
-            if last_date != '':
-                if dead_df.get(i) == last_date:
-                    daily_vol += volume_df.get(i)
-                else:
-                    daily_df.append(daily_vol)
-                    last_date = date_df.get(i)
-                    daily_vol = volume_df.get(i)
-            else:
-                last_date = date_df.get(i)
-                daily_vol = volume_df.get(i)
+def getValues(A):
 
-    running = False
-    global Flag
-    Flag = False
-    if(len(x) == 0):
-        running = True
-        print('Input X Values. Enter blank value to end.')
-        while(running):
-            new_x = input()
-            if new_x != '':
-                x.append(float(new_x))
-            else:
-                running = False
-
-        if(len(y) == 0):
-            running = True
-        print('Input Y Values. Enter blank value to end.')
-        while(running):
-            new_y = input()
-            if new_y != '':
-                y.append(float(new_y))
-            else:
-                running = False
-    if len(x) == len(y):
-        x = np.array(x)
-        y = np.array(y)
-        Flag = False
-        return x,y
-    else:
-        Flag == True
-        return x,y
+    x = np.array(A[:,0])
+    y = np.array(A[:,-1])    
+    return x, y
+    
+    
+    
     
     
 
-x,y = getValues(x,y)
+x,y = getValues(x)
 
 # Graph
 def generateSSValues(x,y, pFlag):
@@ -152,7 +110,6 @@ def menu(x,y, firstMenu):
         print('1: Run Tests')
         print('2: Show Plot')
         print('3: Residuals')
-        print('0: Reinput Values')
         choice = input('?')
         if (choice == '1'):
             print('Which Test?')
@@ -228,9 +185,7 @@ def menu(x,y, firstMenu):
             res_y = np.array(res_y)
             SxY, Sxx, SYY, SSR, Rsq, A,  B  = generateSSValues(res_x, res_y, False)
             generatePlot(A,B,res_x,res_y,'Residuals')
-        elif choice == '0':
-            x,y = getValues([],[])
-            generateSSValues(x,y, True)
+
 if __name__ == "__main__":
     menu(x,y, firstMenu)
     

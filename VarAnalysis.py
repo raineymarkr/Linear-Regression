@@ -4,7 +4,7 @@ import pandas as pd
 import scipy.stats as stats
 from tabulate import tabulate
 
-X = np.array([[3.2, 3.4, 3.3, 3.5], [3.4, 3, 3.7, 3.3], [2.8, 2.6, 3, 2.7]]).T
+X = np.array([[.046, .038, .031], [.025, .035, .042], [.014, .031, .020], [.017, .022, .018], [.043, .012, .039]])
 
 
 def generateSSValues(A):
